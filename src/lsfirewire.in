@@ -1,0 +1,151 @@
+#!/bin/sh
+
+# lsfirewire - list FireWire devices, as detected by the Linux kernel
+# Copyright (C) 2010 Clemens Ladisch <clemens@ladisch.de>
+#
+# This script is licensed under the terms of the GNU General
+# Public License, version 2.
+
+SYSFS=/sys
+SYSFS_BUS=$SYSFS/bus/firewire
+SYSFS_DEVICES=$SYSFS_BUS/devices
+SYSFS_LEGACY_BUS=$SYSFS/bus/ieee1394
+
+show_help() {
+	cat >&2 <<-HELP
+	Usage: lsfirewire [options]
+	Options:
+	  -v, --verbose   Show properties of the devices.
+	      --help      Print this message and exit.
+	      --version   Print the version number and exit.
+
+	Report bugs to <@PACKAGE_BUGREPORT@>.
+	@PACKAGE_NAME@ home page: <@PACKAGE_URL@>.
+	HELP
+}
+
+# Parameters: list of file names.
+# Reads into $string the contents of the first existing and nonempty file.
+read_string_from() {
+	string=
+	while [ $# -gt 0 ]; do
+		if [ -e "$1" ]; then
+			read -r string < "$1"
+			if [ -n "$string" ]; then
+				return
+			fi
+		fi
+		shift
+	done
+}
+
+# Parameter: sysfs device path.
+# Prints a non-verbose device identification.
+show_device() {
+	# The vendor and model names can be in either the root directory or the
+	# (first) unit directory, so try both.  Try the vendor/model number as
+	# last resort.
+	read_string_from "$1/vendor_name" "$1.0/vendor_name" "$1/vendor"
+	vendor=$string
+
+	read_string_from "$1/model_name" "$1.0/model_name" "$1/model"
+	model=$string
+
+	echo "$1: $vendor $model"
+}
+
+# Parameters: sysfs property file name; property name.
+# Prints a sysfs property, if it exists and is nonempty.
+show_property() {
+	read_string_from "$1"
+	if [ -n "$string" ]; then
+		echo "$indent$2: $string"
+	fi
+}
+
+# Parameter: sysfs device path.
+# Prints device information verbosely.
+show_device_verbose() {
+	echo "device $1:"
+	indent='  '
+	show_property "$1/vendor"                "vendor ID"
+	show_property "$1/model"                 "model ID"
+	show_property "$1/hardware_version"      "hardware version ID"
+	show_property "$1/vendor_name"           "vendor"
+	show_property "$1/model_name"            "model"
+	show_property "$1/hardware_version_name" "hardware version"
+	show_property "$1/specifier_id"          "specifier ID"
+	show_property "$1/version"               "version"
+	show_property "$1/guid"                  "guid"
+	show_property "$1/units"                 "units"
+
+	# Sort unit names by number:
+	units=`echo $1.* | tr ' ' '\n' | sort -n -t. -k2`
+	indent='    '
+	for unit in $units; do
+		if [ -d "$unit" ]; then
+			echo "  unit $unit:"
+			show_property "$unit/vendor"                "vendor ID"
+			show_property "$unit/model"                 "model ID"
+			show_property "$unit/hardware_version"      "hardware version ID"
+			show_property "$unit/vendor_name"           "vendor"
+			show_property "$unit/model_name"            "model"
+			show_property "$unit/hardware_version_name" "hardware version"
+			show_property "$unit/specifier_id"          "specifier ID"
+			show_property "$unit/version"               "version"
+		fi
+	done
+}
+
+
+# Parse script parameters.
+
+verbose=
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		(-v|--verbose)
+			verbose=1
+			;;
+		(--help)
+			show_help
+			exit 0
+			;;
+		(--version)
+			echo "@PACKAGE_STRING@"
+			exit 0
+			;;
+		(*)
+			echo "Unknown option: $1" >&2
+			show_help
+			exit 1
+	esac
+	shift
+done
+
+# Check that the firewire-core is loaded.
+
+if [ ! -d "$SYSFS_BUS" ]; then
+	if [ -d "$SYSFS_LEGACY_BUS" ]; then
+		echo "This program does not work with the old ieee1394 stack." >&2
+		echo "Try unloading the ieee1394 module and then loading firewire-ohci." >&2
+	else
+		echo "Directory $SYSFS_BUS not found." >&2
+		echo "Try loading the firewire-ohci module." >&2
+	fi
+	exit 1
+fi
+
+cd "$SYSFS_DEVICES" || exit 0
+
+# Enumerate devices and print them.
+
+# Filter for devices "fwX", ignoring units "fwX.Y"; sort device names by number:
+devices=`echo fw* | tr ' ' '\n' | grep '^fw[0-9]\+$' | sort -n -tw -k2`
+for dev in $devices; do
+	if [ -z "$verbose" ]; then
+		show_device "$dev"
+	else
+		show_device_verbose "$dev"
+	fi
+done

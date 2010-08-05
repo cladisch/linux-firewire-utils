@@ -1,0 +1,35 @@
+@PACKAGE_STRING@
+==============
+
+What's this?
+------------
+
+The @PACKAGE_NAME@ package contains Linux FireWire utilities for
+listing devices (lsfirewire).
+
+
+Installation
+------------
+
+This package uses GNU Autoconf; you can use the standard installation
+sequence::
+
+  configure
+  make
+  make install
+
+
+Authors
+-------
+
+Clemens Ladisch <clemens@ladisch.de>
+
+
+Links
+-----
+
+Report bugs to <@PACKAGE_BUGREPORT@>.
+
+@PACKAGE_NAME@ home page: <@PACKAGE_URL@>.
+
+.. vim: ft=rst

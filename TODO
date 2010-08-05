@@ -1,0 +1,14 @@
+tools for:
+* printing config ROM (crpp)
+* making fw requests (like fwhack, but more user-friendly like setpci)
+* bus manager:
+  - initialize BUS_TIME
+  - set PRIORITY_BUDGET
+    (higher priority for SBP-x devices, or configurable?)
+  - optimize gap counts by PHY pinging
+    (also take over table-based optimization from the kernel)
+  - disable cycle master when not needed
+  - IEEE1212-2001 7.5.4.2 with a cute penguin
+
+lsfirewire:
+* documentation
