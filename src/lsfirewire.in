@@ -112,7 +112,7 @@ while [ $# -gt 0 ]; do
 			exit 0
 			;;
 		(--version)
-			echo "@PACKAGE_STRING@"
+			echo "lsfirewire version @PACKAGE_VERSION@"
 			exit 0
 			;;
 		(*)
