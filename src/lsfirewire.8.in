@@ -1,0 +1,30 @@
+.TH lsfirewire 8 "7 Aug 2010" "@PACKAGE_STRING@" 
+.IX lsfirewire
+.SH NAME
+lsfirewire \- list FireWire devices
+.SH SYNOPSIS
+.B lsfirewire
+.RI [ options ]
+.SH DESCRIPTION
+The
+.B lsfirewire
+utility displays information about all FireWire devices, i.e.,
+the system's FireWire controllers and the devices connected to them.
+.SH OPTIONS
+.TP
+.B \-v, \-\-verbose
+Be more verbose and display detailed information about the devices.
+.TP
+.B \-\-help
+Print a summary of the command-line options and exit.
+.TP
+.B \-\-version
+Print the version number of
+.B lsfirewire
+on the standard output and exit.
+.SH FILES
+.IR /sys/bus/firewire/devices/ *
+.SH BUGS
+Report bugs to <@PACKAGE_BUGREPORT@>.
+.br
+@PACKAGE_NAME@ home page: <@PACKAGE_URL@>.

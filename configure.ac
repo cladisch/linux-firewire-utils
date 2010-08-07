@@ -11,4 +11,5 @@ README
 Makefile
 src/Makefile
 src/lsfirewire
+src/lsfirewire.8
 ])
