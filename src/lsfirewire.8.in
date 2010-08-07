@@ -28,3 +28,5 @@ on the standard output and exit.
 Report bugs to <@PACKAGE_BUGREPORT@>.
 .br
 @PACKAGE_NAME@ home page: <@PACKAGE_URL@>.
+.SH SEE ALSO
+.BR firewire\-request (8)

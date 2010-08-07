@@ -1,0 +1,140 @@
+.TH firewire\-request 8 "7 Aug 2010" "@PACKAGE_STRING@" 
+.IX firewire\-request
+.SH NAME
+firewire\-request \- query and configure FireWire devices
+.SH SYNOPSIS
+.B firewire\-request
+.RI [ options ]
+.I device
+.I command
+.RI [ parameters ]
+.SH DESCRIPTION
+.B firewire\-request
+is a utility to query and configure FireWire devices.
+.PP
+The
+.I device
+parameter specifies the device file
+.RB ( /dev/fw *)
+of the device that is to be accessed.
+.PP
+All numbers must be specified in hexadecimal notation.
+.
+When specifying data blocks, you can separate bytes or quadlets with spaces,
+but then you have to remember to quote them in the shell
+so that all bytes are recognized as a single parameter.
+.PP
+In the following commands,
+.I address
+is either a 48-bit address or a register name.
+.PP
+The following commands are available:
+.TP
+\fBfirewire\-request\fP \fIdevice\fP \fBread\fP \fIaddress\fP [\fIlength\fP]
+Sends a read request to the device
+and prints the value returned by the device, if successful.
+.IP
+If
+.I length
+is not specified, it is derived from
+.IR address :
+for a named register, the register's length is used;
+for a numerical address, a default length of one quadlet (4\~bytes) is used.
+.TP
+\fBfirewire\-request\fP \fIdevice\fP \fBwrite\fP|\fBbroadcast\fP \fIaddress\fP \fIdata\fP
+Sends a write request to the device.
+.IP
+Broadcasts are allowed only for a
+.I device
+that corresponds to a local controller,
+and are sent to all the other devices on the bus.
+.TP
+\fBfirewire\-request\fP \fIdevice locktype address data \fP[\fIdata2\fP]
+Executes a lock transaction (an atomic change) on the device.
+.IP
+.I locktype
+can be any of the following:
+.RS
+.TP
+.B mask_swap
+Changes the bits set in
+.I data
+to the value in
+.IR data2 .
+.TP
+.B compare_swap
+If the register has the same value as
+.IR data ,
+set it to
+.IR data2 .
+.TP
+.BR add [ _big ]
+Increase the register by
+.IR data .
+.TP
+.B add_little
+Increase the little-endian register by
+.IR data .
+.TP
+.BR bounded_add [ _big ]
+If the register has not the the same values as
+.IR data ,
+increase it by
+.IR data2 .
+.TP
+.BR wrap_add [ _big ]
+If the register has not the the same values as
+.IR data ,
+increase it by
+.IR data2 ,
+else set it to
+.IR data2 .
+.RE
+.IP
+All transaction types except
+.BR add / add_big / add_little
+require two parameters.
+.IP
+.B firewire\-request
+will print the value returned by the device,
+which is the old register value at the beginning of the transaction.
+.TP
+\fBfirewire\-request\fP \fIdevice\fP \fBfcp\fP \fIdata\fP
+Sends the message
+.I data
+to the device's FCP command register,
+and prints the response returned by the device
+to the local FCP response register.
+.TP
+\fBfirewire\-request\fP \fIdevice\fP \fBreset\fP|\fBlong_reset\fP
+Issues a bus reset on the bus connected to
+.IR device .
+.SH OPTIONS
+.TP
+.B \-D, \-\-dump\-register\-names
+Print register names that can be used as
+.IR address ,
+and exit.
+.TP
+.B \-v, \-\-verbose
+When used together with
+.BR \-\-dump\-register\-names ,
+print the complete list of register names.
+.TP
+.B \-h, \-\-help
+Print a summary of the command-line options and exit.
+.TP
+.B \-V, \-\-version
+Print the version number of
+.B firewire\-request
+on the standard output and exit.
+.SH NOTES
+Whether you can access a device depends on the permissions set for its device file.
+.
+Usually, most devices require root privileges.
+.SH BUGS
+Report bugs to <@PACKAGE_BUGREPORT@>.
+.br
+@PACKAGE_NAME@ home page: <@PACKAGE_URL@>.
+.SH SEE ALSO
+.BR lsfirewire (8)

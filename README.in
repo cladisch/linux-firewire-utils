@@ -5,7 +5,8 @@ What's this?
 ------------
 
 The @PACKAGE_NAME@ package contains Linux FireWire utilities for
-listing devices (lsfirewire).
+listing devices (lsfirewire) and for querying and configuring devices
+(firewire-request).
 
 
 Installation

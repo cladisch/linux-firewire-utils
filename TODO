@@ -1,6 +1,5 @@
 tools for:
 * printing config ROM (crpp)
-* making fw requests (like fwhack, but more user-friendly like setpci)
 * bus manager:
   - initialize BUS_TIME
   - set PRIORITY_BUDGET

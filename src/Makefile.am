@@ -1,2 +1,3 @@
 bin_SCRIPTS = lsfirewire
-man_MANS = lsfirewire.8
+bin_PROGRAMS = firewire-request
+man_MANS = lsfirewire.8 firewire-request.8
