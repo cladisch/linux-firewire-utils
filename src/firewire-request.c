@@ -383,11 +383,13 @@ static void do_fcp(void)
 			struct fw_cdev_event_request2 *request = (void *)buf;
 			send_response(request->handle, RCODE_COMPLETE);
 			print_data("response: ", request->data, request->length, false);
+			response_received = true;
 #endif
 		} else if (event->type == FW_CDEV_EVENT_REQUEST) {
 			struct fw_cdev_event_request *request = (void *)buf;
 			send_response(request->handle, RCODE_COMPLETE);
 			print_data("response: ", request->data, request->length, false);
+			response_received = true;
 		}
 	}
 }
