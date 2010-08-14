@@ -1,6 +1,7 @@
 tools for:
 * printing config ROM (crpp)
 * bus manager:
+  - make sure SPLIT_TIMEOUT registers are consistent
   - initialize BUS_TIME
   - set PRIORITY_BUDGET
     (higher priority for SBP-x devices, or configurable?)
