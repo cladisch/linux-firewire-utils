@@ -26,6 +26,10 @@
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof *(a))
 
+#ifdef FW_CDEV_EVENT_REQUEST2
+#define USE_CDEV_ABI_4
+#endif
+
 typedef __u8 u8;
 typedef __u32 u32;
 typedef __u64 u64;
@@ -58,7 +62,11 @@ static void open_device(void)
 		exit(EXIT_FAILURE);
 	}
 
-	get_info.version = 2;
+#ifdef USE_CDEV_ABI_4
+	get_info.version = 4;
+#else
+	get_info.version = 3;
+#endif
 	get_info.rom_length = 0;
 	get_info.rom = 0;
 	get_info.bus_reset = (u64)&bus_reset;
@@ -320,6 +328,9 @@ static void do_fcp(void)
 	allocate.offset = 0xfffff0000d00uLL; /* FCP response */
 	allocate.closure = 0;
 	allocate.length = 0x200;
+#ifdef USE_CDEV_ABI_4
+	allocate.region_end = allocate.offset + allocate.length;
+#endif
 	if (ioctl(fd, FW_CDEV_IOC_ALLOCATE, &allocate) < 0) {
 		perror("ALLOCATE ioctl failed");
 		exit(EXIT_FAILURE);
@@ -367,6 +378,12 @@ static void do_fcp(void)
 				return;
 			}
 			ack_received = true;
+#ifdef USE_CDEV_ABI_4
+		} else if (event->type == FW_CDEV_EVENT_REQUEST2) {
+			struct fw_cdev_event_request2 *request = (void *)buf;
+			send_response(request->handle, RCODE_COMPLETE);
+			print_data("response: ", request->data, request->length, false);
+#endif
 		} else if (event->type == FW_CDEV_EVENT_REQUEST) {
 			struct fw_cdev_event_request *request = (void *)buf;
 			send_response(request->handle, RCODE_COMPLETE);

@@ -11,5 +11,4 @@ tools for:
   - IEEE1212-2001 7.5.4.2 with a cute penguin
 
 firewire-request:
-* use new API, if possible, for FCP responses
 * add PHY packets
