@@ -29,10 +29,6 @@
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof *(a))
 
-#ifdef FW_CDEV_EVENT_REQUEST2
-#define USE_CDEV_ABI_4
-#endif
-
 typedef __u8 u8;
 typedef __u32 u32;
 typedef __u64 u64;
@@ -67,7 +63,7 @@ static void open_device(void)
 		exit(EXIT_FAILURE);
 	}
 
-#ifdef USE_CDEV_ABI_4
+#ifdef HAVE_CDEV_4
 	get_info.version = 4;
 #else
 	get_info.version = 3;
@@ -335,7 +331,7 @@ static void do_fcp(void)
 	allocate.offset = FCP_RESPONSE_ADDR;
 	allocate.closure = 0;
 	allocate.length = 0x200;
-#ifdef USE_CDEV_ABI_4
+#ifdef HAVE_CDEV_4
 	allocate.region_end = allocate.offset + allocate.length;
 #endif
 	if (ioctl(fd, FW_CDEV_IOC_ALLOCATE, &allocate) < 0) {
@@ -385,7 +381,7 @@ static void do_fcp(void)
 				return;
 			}
 			ack_received = true;
-#ifdef USE_CDEV_ABI_4
+#ifdef HAVE_CDEV_4
 		} else if (event->type == FW_CDEV_EVENT_REQUEST2) {
 			struct fw_cdev_event_request2 *request = (void *)buf;
 			send_response(request->handle, RCODE_COMPLETE);
