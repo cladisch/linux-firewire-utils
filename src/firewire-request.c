@@ -24,6 +24,9 @@
 #include <linux/firewire-constants.h>
 #include <asm/byteorder.h>
 
+#define FCP_COMMAND_ADDR	0xfffff0000b00uLL
+#define FCP_RESPONSE_ADDR	0xfffff0000d00uLL
+
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof *(a))
 
 #ifdef FW_CDEV_EVENT_REQUEST2
@@ -49,6 +52,8 @@ static unsigned int read_length;
 static struct data data;
 static struct data data2;
 static int fd;
+static u32 card_index;
+static u32 node_id;
 static u32 generation;
 
 static void open_device(void)
@@ -75,6 +80,8 @@ static void open_device(void)
 		perror("GET_INFO ioctl failed");
 		exit(EXIT_FAILURE);
 	}
+	card_index = get_info.card;
+	node_id = bus_reset.node_id;
 	generation = bus_reset.generation;
 }
 
@@ -325,7 +332,7 @@ static void do_fcp(void)
 	int ready, r;
 	struct fw_cdev_event_common *event;
 
-	allocate.offset = 0xfffff0000d00uLL; /* FCP response */
+	allocate.offset = FCP_RESPONSE_ADDR;
 	allocate.closure = 0;
 	allocate.length = 0x200;
 #ifdef USE_CDEV_ABI_4
@@ -338,7 +345,7 @@ static void do_fcp(void)
 
 	send_request.tcode = data.length == 4 ? TCODE_WRITE_QUADLET_REQUEST : TCODE_WRITE_BLOCK_REQUEST;
 	send_request.length = data.length;
-	send_request.offset = 0xfffff0000b00uLL; /* FCP command */
+	send_request.offset = FCP_COMMAND_ADDR;
 	send_request.closure = 0;
 	send_request.data = (u64)data.data;
 	send_request.generation = generation;
@@ -382,14 +389,25 @@ static void do_fcp(void)
 		} else if (event->type == FW_CDEV_EVENT_REQUEST2) {
 			struct fw_cdev_event_request2 *request = (void *)buf;
 			send_response(request->handle, RCODE_COMPLETE);
-			print_data("response: ", request->data, request->length, false);
-			response_received = true;
+			if (request->card == card_index &&
+			    (request->source_node_id & 0x3f) == (node_id & 0x3f) &&
+			    (request->tcode == TCODE_WRITE_QUADLET_REQUEST ||
+			     request->tcode == TCODE_WRITE_BLOCK_REQUEST) &&
+			    request->offset == FCP_RESPONSE_ADDR &&
+			    request->generation == generation) {
+				print_data("response: ", request->data, request->length, false);
+				response_received = true;
+			}
 #endif
 		} else if (event->type == FW_CDEV_EVENT_REQUEST) {
 			struct fw_cdev_event_request *request = (void *)buf;
 			send_response(request->handle, RCODE_COMPLETE);
-			print_data("response: ", request->data, request->length, false);
-			response_received = true;
+			if ((request->tcode == TCODE_WRITE_QUADLET_REQUEST ||
+			     request->tcode == TCODE_WRITE_BLOCK_REQUEST) &&
+			    request->offset == FCP_RESPONSE_ADDR) {
+				print_data("response: ", request->data, request->length, false);
+				response_received = true;
+			}
 		}
 	}
 }
