@@ -1,4 +1,4 @@
-.TH lsfirewire 8 "7 Aug 2010" "@PACKAGE_STRING@" 
+.TH lsfirewire 8 "15 Aug 2010" "@PACKAGE_STRING@" 
 .IX lsfirewire
 .SH NAME
 lsfirewire \- list FireWire devices
@@ -29,4 +29,5 @@ Report bugs to <@PACKAGE_BUGREPORT@>.
 .br
 @PACKAGE_NAME@ home page: <@PACKAGE_URL@>.
 .SH SEE ALSO
-.BR firewire\-request (8)
+.BR firewire\-request (8),
+.BR lsfirewirephy (8)
