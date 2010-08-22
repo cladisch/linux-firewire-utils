@@ -31,23 +31,18 @@ typedef __u8 u8;
 typedef __u32 u32;
 typedef __u64 u64;
 
-static bool list_all;
-static const char *device_file_name = "/dev/fw0";
+static char *device_file_name;
 static int list_phy_id = -1;
 static int fd;
-static int root_phy_id;
-static u32 generation;
-static u32 card_index;
+struct fw_cdev_get_info get_info;
+struct fw_cdev_event_bus_reset bus_reset;
 
 static void help(void)
 {
-	fputs("Usage: lsfirewirephy [options]\n"
+	fputs("Usage: lsfirewirephy [options] [devicenode [phyid]]\n"
 	      "Options:\n"
-	      " -a, --all          list all PHYs on all buses\n"
-	      " -d, --device=file  device file of the local node on the bus\n"
-	      " -p, --phy-id=nr    list only this PHY\n"
-	      " -h, --help         show this message and exit\n"
-	      " -V, --version      show version number and exit\n"
+	      " -h, --help      show this message and exit\n"
+	      " -V, --version   show version number and exit\n"
 	      "\n"
 	      "Report bugs to <" PACKAGE_BUGREPORT ">.\n"
 	      PACKAGE_NAME " home page: <" PACKAGE_URL ">.\n",
@@ -56,11 +51,8 @@ static void help(void)
 
 static void parse_parameters(int argc, char *argv[])
 {
-	static const char short_options[] = "ad:p:hV";
+	static const char short_options[] = "hV";
 	static const struct option long_options[] = {
-		{ "all", 0, NULL, 'a' },
-		{ "device", 1, NULL, 'd' },
-		{ "phy-id", 1, NULL, 'p' },
 		{ "help", 0, NULL, 'h' },
 		{ "version", 0, NULL, 'V' },
 		{}
@@ -70,21 +62,6 @@ static void parse_parameters(int argc, char *argv[])
 
 	while ((c = getopt_long(argc, argv, short_options, long_options, NULL)) != -1) {
 		switch (c) {
-		case 'a':
-			list_all = true;
-			break;
-		case 'd':
-			device_file_name = optarg;
-			break;
-		case 'p':
-			list_phy_id = strtol(optarg, &endptr, 0);
-			if (optarg[0] != '\0' && *endptr != '\0')
-				goto syntax_error;
-			if (list_phy_id < 0 || list_phy_id >= 63) {
-				fputs("phy-id must be between 0 and 62\n", stderr);
-				exit(EXIT_FAILURE);
-			}
-			break;
 		case 'h':
 			help();
 			exit(EXIT_SUCCESS);
@@ -97,24 +74,87 @@ static void parse_parameters(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 	}
-	if (optind < argc)
-		goto syntax_error;
+
+	if (optind < argc) {
+		device_file_name = argv[optind++];
+
+		if (optind < argc) {
+			list_phy_id = strtol(argv[optind], &endptr, 0);
+			if (argv[optind][0] != '\0' && *endptr != '\0')
+				goto syntax_error;
+			if (list_phy_id < 0 || list_phy_id >= 63) {
+				fputs("phy-id must be between 0 and 62\n", stderr);
+				exit(EXIT_FAILURE);
+			}
+			++optind;
+
+			if (optind < argc)
+				goto syntax_error;
+		}
+	}
 }
 
-static bool open_device(const char *local_node_file)
-{
-	struct fw_cdev_get_info get_info;
-	struct fw_cdev_event_bus_reset bus_reset;
-	struct fw_cdev_receive_phy_packets receive_phy_packets;
+static struct dirent **fw_dirents;
+static int fw_dirent_count;
+static int fw_dirent_index;
 
-	fd = open(local_node_file, O_RDWR);
-	if (fd == -1) {
-		if (!list_all) {
-			perror(local_node_file);
+static int fw_filter(const struct dirent *dirent)
+{
+	return dirent->d_name[0] == 'f' &&
+	       dirent->d_name[1] == 'w' &&
+	       isdigit(dirent->d_name[2]);
+}
+
+static void init_enumerated_fw_devs(void)
+{
+	fw_dirent_count = scandir("/dev", &fw_dirents, fw_filter, versionsort);
+	if (fw_dirent_count < 0) {
+		perror("cannot read /dev");
+		exit(EXIT_FAILURE);
+	}
+	fw_dirent_index = 0;
+}
+
+static void cleanup_enumerated_fw_devs(void)
+{
+	int i;
+
+	for (i = 0; i < fw_dirent_count; ++i)
+		free(fw_dirents[i]);
+	free(fw_dirents);
+	fw_dirents = NULL;
+	fw_dirent_count = 0;
+}
+
+static bool has_enumerated_fw_dev(void)
+{
+	free(device_file_name);
+	device_file_name = NULL;
+
+	if (fw_dirent_index < fw_dirent_count) {
+		if (asprintf(&device_file_name, "/dev/%s",
+			     fw_dirents[fw_dirent_index]->d_name) < 0) {
+			perror("asprintf failed");
 			exit(EXIT_FAILURE);
-		} else {
-			return false;
 		}
+		return true;
+	} else {
+		cleanup_enumerated_fw_devs();
+		return false;
+	}
+}
+
+static void next_enumerated_fw_dev(void)
+{
+	++fw_dirent_index;
+}
+
+static void open_device(void)
+{
+	fd = open(device_file_name, O_RDWR);
+	if (fd == -1) {
+		perror(device_file_name);
+		exit(EXIT_FAILURE);
 	}
 
 	get_info.version = 4;
@@ -130,42 +170,46 @@ static bool open_device(const char *local_node_file)
 		fputs("this kernel is too old\n", stderr);
 		exit(EXIT_FAILURE);
 	}
-	if (bus_reset.node_id != bus_reset.local_node_id) {
-		if (!list_all) {
-			fprintf(stderr, "%s: not a local node\n", local_node_file);
-			exit(EXIT_FAILURE);
-		} else {
-			close(fd);
-			return false;
-		}
-	}
-	root_phy_id = bus_reset.root_node_id & 0x3f;
-	generation = bus_reset.generation;
-	card_index = get_info.card;
+}
+
+static void enable_phy_packets(void)
+{
+	struct fw_cdev_receive_phy_packets receive_phy_packets;
 
 	receive_phy_packets.closure = 0;
 	if (ioctl(fd, FW_CDEV_IOC_RECEIVE_PHY_PACKETS, &receive_phy_packets) < 0) {
 		perror("RECEIVE_PHY_PACKETS ioctl failed");
 		exit(EXIT_FAILURE);
 	}
-
-	return true;
 }
 
-static void list_phy(int phy_id)
+static bool device_is_local_node(void)
 {
-	static u8 buf[256];
+	return bus_reset.node_id == bus_reset.local_node_id;
+}
+
+static void check_local_node(void)
+{
+	if (!device_is_local_node()) {
+		fprintf(stderr, "%s: not a local node\n", device_file_name);
+		exit(EXIT_FAILURE);
+	}
+}
+
+static void list_phy(void)
+{
 	struct fw_cdev_send_phy_packet send_phy_packet;
-	int reg, regs_read;
-	struct pollfd pfd;
+	unsigned int reg, regs_read;
 	int ready, r;
+	struct pollfd pfd;
+	u8 buf[256];
 	struct fw_cdev_event_common *event;
 	u8 reg_values[6];
 
 	send_phy_packet.closure = 0;
-	send_phy_packet.generation = generation;
+	send_phy_packet.generation = bus_reset.generation;
 	for (reg = 2; reg <= 7; ++reg) {
-		send_phy_packet.data[0] = PHY_REMOTE_ACCESS_PAGED(phy_id, 1, 0, reg);
+		send_phy_packet.data[0] = PHY_REMOTE_ACCESS_PAGED(list_phy_id, 1, 0, reg);
 		send_phy_packet.data[1] = ~send_phy_packet.data[0];
 		if (ioctl(fd, FW_CDEV_IOC_SEND_PHY_PACKET, &send_phy_packet) < 0) {
 			perror("SEND_PHY_PACKET ioctl failed");
@@ -208,7 +252,7 @@ static void list_phy(int phy_id)
 			struct fw_cdev_event_phy_packet *phy_packet = (void *)buf;
 			if (phy_packet->length == 8 &&
 			    (phy_packet->data[0] & 0xffff8000)
-			    == PHY_REMOTE_REPLY_PAGED(phy_id, 1, 0, 0, 0)) {
+			    == PHY_REMOTE_REPLY_PAGED(list_phy_id, 1, 0, 0, 0)) {
 				reg = (phy_packet->data[0] >> 8) & 7;
 				if (reg >= 2) {
 					reg_values[reg - 2] = phy_packet->data[0] & 0xff;
@@ -219,66 +263,71 @@ static void list_phy(int phy_id)
 	}
 
 	printf("%u.%d: %02x%02x%02x:%02x%02x%02x\n",
-	       (unsigned int)card_index, phy_id,
+	       (unsigned int)get_info.card, list_phy_id,
 	       reg_values[0], reg_values[1], reg_values[2],
 	       reg_values[3], reg_values[4], reg_values[5]);
 }
 
-static void list_phys(void)
+static void list_one_phy(void)
 {
-	int p;
-
-	for (p = 0; p <= root_phy_id; ++p)
-		list_phy(p);
-}
-
-static void list_bus(const char *local_node_file)
-{
-	open_device(device_file_name);
-	if (list_phy_id >= 0)
-		list_phy(list_phy_id);
-	else
-		list_phys();
+	open_device();
+	check_local_node();
+	enable_phy_packets();
+	list_phy();
 	close(fd);
 }
 
-static int fw_filter(const struct dirent *dirent)
+static void list_device(void)
 {
-	return dirent->d_name[0] == 'f' &&
-	       dirent->d_name[1] == 'w' &&
-	       isdigit(dirent->d_name[2]);
+	unsigned int list_card;
+
+	open_device();
+	list_phy_id = bus_reset.node_id & 0x3f;
+	list_card = get_info.card;
+	if (!device_is_local_node()) {
+		close(fd);
+		for (init_enumerated_fw_devs();
+		     has_enumerated_fw_dev();
+		     next_enumerated_fw_dev()) {
+			open_device();
+			if (get_info.card == list_card &&
+			    device_is_local_node())
+				goto found;
+			close(fd);
+		}
+		fprintf(stderr, "local node for card %u not found\n", list_card);
+		exit(EXIT_FAILURE);
+	}
+found:
+	enable_phy_packets();
+	list_phy();
+	close(fd);
 }
 
 static void list_all_buses(void)
 {
-	int i, ents;
-	struct dirent **devices;
-	char *device_file;
-
-	ents = scandir("/dev", &devices, fw_filter, versionsort);
-	if (ents < 0) {
-		perror("cannot read /dev");
-		exit(EXIT_FAILURE);
-	}
-	for (i = 0; i < ents; ++i) {
-		if (asprintf(&device_file, "/dev/%s", devices[i]->d_name) < 0) {
-			perror("asprintf failed");
-			exit(EXIT_FAILURE);
+	for (init_enumerated_fw_devs();
+	     has_enumerated_fw_dev();
+	     next_enumerated_fw_dev()) {
+		open_device();
+		if (device_is_local_node()) {
+			int root_phy_id = bus_reset.root_node_id & 0x3f;
+			enable_phy_packets();
+			for (list_phy_id = 0; list_phy_id <= root_phy_id; ++list_phy_id)
+				list_phy();
 		}
-		if (open_device(device_file)) {
-			list_phys();
-			close(fd);
-		}
-		free(devices[i]);
+		close(fd);
 	}
-	free(devices);
 }
 
 int main(int argc, char *argv[])
 {
 	parse_parameters(argc, argv);
-	if (!list_all)
-		list_bus(device_file_name);
+	if (device_file_name)
+		if (list_phy_id >= 0)
+			list_one_phy();
+		else
+			list_device();
 	else
 		list_all_buses();
 	return 0;
