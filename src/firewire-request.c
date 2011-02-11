@@ -1,7 +1,7 @@
 /*
  * firewire-request.c - send requests to FireWire devices
  *
- * Copyright 2010 Clemens Ladisch <clemens@ladisch.de>
+ * Copyright 2010-2011 Clemens Ladisch <clemens@ladisch.de>
  *
  * licensed under the terms of version 2 of the GNU General Public License
  */
@@ -354,7 +354,7 @@ static void do_fcp(void)
 	response_received = false;
 	pfd.fd = fd;
 	pfd.events = POLLIN;
-	while (!ack_received && !response_received) {
+	while (!ack_received || !response_received) {
 		ready = poll(&pfd, 1, 123);
 		if (ready < 0) {
 			perror("poll failed");
