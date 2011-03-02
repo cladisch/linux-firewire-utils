@@ -1,4 +1,4 @@
-.TH lsfirewirephy 8 "22 Aug 2010" "@PACKAGE_STRING@" 
+.TH lsfirewirephy 8 "2 Mar 2011" "@PACKAGE_STRING@" 
 .IX lsfirewirephy
 .SH NAME
 lsfirewirephy \- list PHYs of FireWire devices
@@ -30,7 +30,7 @@ The node number is zero-based and cannot be larger than 62.
 Use this to address a single device that does not have a
 .IR /dev/fw *
 file,
-such as repeaters, powered-down devices, or VersaPHY devices.
+such as a repeater, a powered-down device, or a VersaPHY device.
 .PP
 Without any parameters,
 .B lsfirewirephy
