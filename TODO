@@ -1,5 +1,4 @@
 tools for:
-* printing config ROM (crpp)
 * bus manager:
   - make sure SPLIT_TIMEOUT registers are consistent
   - initialize BUS_TIME

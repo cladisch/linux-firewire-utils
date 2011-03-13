@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # lsfirewire - list FireWire devices, as detected by the Linux kernel
-# Copyright (C) 2010 Clemens Ladisch <clemens@ladisch.de>
+# Copyright (C) 2010-2011 Clemens Ladisch <clemens@ladisch.de>
 #
 # This script is licensed under the terms of the GNU General
 # Public License, version 2.
@@ -16,6 +16,7 @@ show_help() {
 	Usage: lsfirewire [options]
 	Options:
 	  -v, --verbose   Show properties of the devices.
+	                  Use twice to also show the configuration ROM.
 	      --help      Print this message and exit.
 	      --version   Print the version number and exit.
 
@@ -97,6 +98,27 @@ show_device_verbose() {
 	done
 }
 
+# Parameter: sysfs device path.
+# Prints the contents of the device's configuration ROM.
+show_device_config_rom() {
+	if [ -z "$CRPP" ]; then
+		MY_DIR=$(dirname "$0")
+		if [ "$MY_DIR" == "${MY_DIR#/}" ]; then # relative path?
+			MY_DIR="$ORIGINAL_PWD/$MY_DIR"
+		fi
+
+		CRPP="$MY_DIR/../libexec/jujuutils/crpp"
+		if [ ! -x "$CRPP" ]; then
+			CRPP="$MY_DIR/crpp"
+			if [ ! -x "$CRPP" ]; then
+				CRPP=crpp
+			fi
+		fi
+	fi
+
+	"$CRPP" < "$1/config_rom"
+}
+
 
 # Parse script parameters.
 
@@ -105,7 +127,10 @@ verbose=
 while [ $# -gt 0 ]; do
 	case "$1" in
 		(-v|--verbose)
-			verbose=1
+			verbose=${verbose}1
+			;;
+		(-vv)
+			verbose=${verbose}11
 			;;
 		(--help)
 			show_help
@@ -136,6 +161,7 @@ if [ ! -d "$SYSFS_BUS" ]; then
 	exit 1
 fi
 
+ORIGINAL_PWD="$PWD"
 cd "$SYSFS_DEVICES" || exit 0
 
 # Enumerate devices and print them.
@@ -147,5 +173,8 @@ for dev in $devices; do
 		show_device "$dev"
 	else
 		show_device_verbose "$dev"
+		if [ ${#verbose} -ge 2 ]; then
+			show_device_config_rom "$dev"
+		fi
 	fi
 done

@@ -14,6 +14,8 @@ the system's FireWire controllers and the devices connected to them.
 .TP
 .B \-v, \-\-verbose
 Be more verbose and display detailed information about the devices.
+Use this option twice to additionally display the contents of the devices'
+configuration ROM.
 .TP
 .B \-\-help
 Print a summary of the command-line options and exit.
