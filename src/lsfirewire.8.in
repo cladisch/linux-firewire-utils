@@ -1,4 +1,4 @@
-.TH lsfirewire 8 "15 Aug 2010" "@PACKAGE_STRING@" 
+.TH lsfirewire 8 "14 Mar 2011" "@PACKAGE_STRING@" 
 .IX lsfirewire
 .SH NAME
 lsfirewire \- list FireWire devices
