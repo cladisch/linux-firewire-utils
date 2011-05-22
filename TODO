@@ -8,6 +8,3 @@ tools for:
     (also take over table-based optimization from the kernel)
   - disable cycle master when not needed
   - IEEE1212-2001 7.5.4.2 with a cute penguin
-
-firewire-request:
-* add PHY packets

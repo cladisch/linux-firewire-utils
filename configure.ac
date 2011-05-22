@@ -42,6 +42,7 @@ src/lsfirewire
 src/lsfirewire.8
 src/lsfirewirephy.8
 src/firewire-request.8
+src/firewire-phy-command.8
 ])
 
 AS_IF([test "$juju4" != yes],

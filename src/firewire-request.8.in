@@ -137,4 +137,5 @@ Report bugs to <@PACKAGE_BUGREPORT@>.
 .br
 @PACKAGE_NAME@ home page: <@PACKAGE_URL@>.
 .SH SEE ALSO
-.BR lsfirewire (8)
+.BR lsfirewire (8),
+.BR firewire-phy-command (8)

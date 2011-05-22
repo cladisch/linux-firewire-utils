@@ -49,4 +49,5 @@ Report bugs to <@PACKAGE_BUGREPORT@>.
 .br
 @PACKAGE_NAME@ home page: <@PACKAGE_URL@>.
 .SH SEE ALSO
+.BR firewire-phy-command (8),
 .BR lsfirewire (8)

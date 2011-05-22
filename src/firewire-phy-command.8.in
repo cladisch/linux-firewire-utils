@@ -1,0 +1,154 @@
+.TH firewire\-phy\-command 8 "22 May 2011" "@PACKAGE_STRING@" 
+.IX firewire\-phy\-command
+.SH NAME
+firewire\-phy\-command \- low-level FireWire bus and PHY configuration
+.SH SYNOPSIS
+.B firewire\-phy\-command
+.RI [ options ]
+.I command
+.RI [ parameters ]
+.SH DESCRIPTION
+.B firewire\-phy\-command
+is a utility to query and configure the FireWire bus,
+its devices, and their ports.
+.PP
+In the following commands,
+numbers must be specified in decimal,
+or in hexadecimal with a "0x" prefix.
+.PP
+.I node
+is either the device file
+.RB ( /dev/fw *)
+of the node that is to be accessed,
+or the node number.
+.PP
+The following commands are available:
+.TP
+\fBfirewire\-phy\-command\fP \fBconfig\fP [\fBroot\fP \fInode\fP] [\fBgapcount\fP \fIgapcount\fP]
+The
+.B root
+parameter specifies the node that is forced to become the next root node.
+.IP
+The
+.B gapcount
+parameter specifies a timing parameter used to optimize performance.
+This must be derived from the actual worst-case round-trip delay
+between any two nodes.
+.IP
+At least one of
+.B root
+or
+.B gapcount
+must be specified.
+.IP
+The configuration changes take effect after the next bus reset,
+which must be issued immediately after this command; see the
+.B reset
+command below.
+.TP
+\fBfirewire\-phy\-command\fP \fBping\fP \fInode\fP
+Send a ping packet to node
+.IR node ,
+and print 
+.IR node 's
+answer (its self ID) together with the round-trip time.
+.TP
+\fBfirewire\-phy\-command\fP \fBread\fP \fInode\fP [\fIpage\fP \fIport\fP] \fIregister\fP
+Read a PHY register on node
+.I node
+and print the register value.
+.IP
+Registers 0 to 7 are global;
+registers 8 to 15 are paged and require both a page number and a port number.
+.TP
+\fBfirewire\-phy\-command\fP \fBnop\fP \fInode\fP \fIport\fP
+.TQ
+\fBfirewire\-phy\-command\fP \fBdisable\fP \fInode\fP \fIport\fP
+.TQ
+\fBfirewire\-phy\-command\fP \fBsuspend\fP \fInode\fP \fIport\fP
+.TQ
+\fBfirewire\-phy\-command\fP \fBclear\fP \fInode\fP \fIport\fP
+.TQ
+\fBfirewire\-phy\-command\fP \fBenable\fP \fInode\fP \fIport\fP
+.TQ
+\fBfirewire\-phy\-command\fP \fBresume\fP \fInode\fP \fIport\fP
+.TQ
+\fBfirewire\-phy\-command\fP \fBstandby\fP \fInode\fP \fIport\fP
+.TQ
+\fBfirewire\-phy\-command\fP \fBrestore\fP \fInode\fP \fIport\fP
+Send a remote command packet to port
+.I port
+of node
+.IR node ,
+and print the new port status.
+.RS
+.TP
+.B nop
+Do nothing, just return the status.
+This can be used to read the port status,
+or to check whether a port exists.
+.TP
+.B disable
+Disable the port.
+.TP
+.B suspend
+Initiate suspend.
+.TP
+.B clear
+Clear the port's fault status bit(s).
+.TP
+.B enable
+Enable the port.
+.TP
+.B resume
+Resume the port.
+.TP
+.BR standby
+Initiate standby (Beta PHYs only).
+.TP
+.BR restore
+Restore from standby (Beta PHYs only).
+.RE
+.TP
+\fBfirewire\-phy\-command\fP \fBresume\fP
+Broadcast a resume packet to all ports on the bus.
+.TP
+\fBfirewire\-phy\-command\fP \fBlinkon\fP \fInode\fP
+Send a link-on packet, which instructs node
+.I node
+to switch on, i.e., to come out of powersaving mode.
+.TP
+\fBfirewire\-phy\-command\fP \fBreset\fP
+Issue a bus reset.
+.SH OPTIONS
+.TP
+\fB\-b\fP, \fB\-\-bus\fP=\fInode\fP
+If there are multiple FireWire buses,
+i.e., if the computer has multiple FireWire controllers,
+this option specifies on which bus the command is sent.
+.I node
+must be the device file of the controller,
+or the controller's card number.
+.IP
+This option is not needed if a command's
+.I node
+parameter specifies a device node,
+as that parameter already implies the bus to use.
+.TP
+.BR \-h ", " \-\-help
+Print a summary of the command-line options and exit.
+.TP
+.BR \-V ", " \-\-version
+Print the version number of
+.B firewire\-phy\-command
+on the standard output and exit.
+.SH NOTES
+This program needs to access all FireWire device files,
+which usually requires root privileges.
+.SH BUGS
+Report bugs to <@PACKAGE_BUGREPORT@>.
+.br
+@PACKAGE_NAME@ home page: <@PACKAGE_URL@>.
+.SH SEE ALSO
+.BR lsfirewirephy (8),
+.BR firewire-request (8)
