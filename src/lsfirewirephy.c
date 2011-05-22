@@ -1,7 +1,7 @@
 /*
  * lsfirewirephy.c - list the PHYs on a bus
  *
- * Copyright 2010 Clemens Ladisch <clemens@ladisch.de>
+ * Copyright 2010-2011 Clemens Ladisch <clemens@ladisch.de>
  *
  * licensed under the terms of version 2 of the GNU General Public License
  */
@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 #include <ctype.h>
 #include <dirent.h>
 #include <getopt.h>
@@ -76,7 +77,11 @@ static void parse_parameters(int argc, char *argv[])
 	}
 
 	if (optind < argc) {
-		device_file_name = argv[optind++];
+		device_file_name = strdup(argv[optind++]);
+		if (!device_file_name) {
+			fputs("out of memory\n", stderr);
+			exit(EXIT_FAILURE);
+		}
 
 		if (optind < argc) {
 			list_phy_id = strtol(argv[optind], &endptr, 0);
