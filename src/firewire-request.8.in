@@ -1,4 +1,4 @@
-.TH firewire\-request 8 "7 Aug 2010" "@PACKAGE_STRING@" 
+.TH firewire\-request 8 "22 May 2011" "@PACKAGE_STRING@" 
 .IX firewire\-request
 .SH NAME
 firewire\-request \- query and configure FireWire devices
@@ -31,8 +31,8 @@ is either a 48-bit address or a register name.
 The following commands are available:
 .TP
 \fBfirewire\-request\fP \fIdevice\fP \fBread\fP \fIaddress\fP [\fIlength\fP]
-Sends a read request to the device
-and prints the value returned by the device, if successful.
+Send a read request to the device,
+and print the value returned by the device, if successful.
 .IP
 If
 .I length
@@ -42,7 +42,7 @@ for a named register, the register's length is used;
 for a numerical address, a default length of one quadlet (4\~bytes) is used.
 .TP
 \fBfirewire\-request\fP \fIdevice\fP \fBwrite\fP|\fBbroadcast\fP \fIaddress\fP \fIdata\fP
-Sends a write request to the device.
+Send a write request to the device.
 .IP
 Broadcasts are allowed only for a
 .I device
@@ -50,14 +50,14 @@ that corresponds to a local controller,
 and are sent to all the other devices on the bus.
 .TP
 \fBfirewire\-request\fP \fIdevice locktype address data \fP[\fIdata2\fP]
-Executes a lock transaction (an atomic change) on the device.
+Execute a lock transaction (an atomic change) on the device.
 .IP
 .I locktype
 can be any of the following:
 .RS
 .TP
 .B mask_swap
-Changes the bits set in
+Change the bits set in
 .I data
 to the value in
 .IR data2 .
@@ -77,13 +77,13 @@ Increase the little-endian register by
 .IR data .
 .TP
 .BR bounded_add [ _big ]
-If the register has not the the same values as
+If the register has not the the same value as
 .IR data ,
 increase it by
 .IR data2 .
 .TP
 .BR wrap_add [ _big ]
-If the register has not the the same values as
+If the register has not the the same value as
 .IR data ,
 increase it by
 .IR data2 ,
@@ -100,14 +100,14 @@ will print the value returned by the device,
 which is the old register value at the beginning of the transaction.
 .TP
 \fBfirewire\-request\fP \fIdevice\fP \fBfcp\fP \fIdata\fP
-Sends the message
+Send the message
 .I data
 to the device's FCP command register,
-and prints the response returned by the device
+and print the response returned by the device
 to the local FCP response register.
 .TP
 \fBfirewire\-request\fP \fIdevice\fP \fBreset\fP|\fBlong_reset\fP
-Issues a bus reset on the bus connected to
+Issue a bus reset on the bus connected to
 .IR device .
 .SH OPTIONS
 .TP
