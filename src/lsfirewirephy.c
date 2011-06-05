@@ -13,6 +13,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <dirent.h>
+#include <errno.h>
 #include <getopt.h>
 #include <fcntl.h>
 #include <poll.h>
@@ -154,10 +155,12 @@ static void next_enumerated_fw_dev(void)
 	++fw_dirent_index;
 }
 
-static void open_device(void)
+static bool open_device(bool force)
 {
 	fd = open(device_file_name, O_RDWR);
 	if (fd == -1) {
+		if (!force && errno == ENODEV)
+			return false;
 		perror(device_file_name);
 		exit(EXIT_FAILURE);
 	}
@@ -175,6 +178,8 @@ static void open_device(void)
 		fputs("this kernel is too old\n", stderr);
 		exit(EXIT_FAILURE);
 	}
+
+	return true;
 }
 
 static void enable_phy_packets(void)
@@ -275,7 +280,7 @@ static void list_phy(void)
 
 static void list_one_phy(void)
 {
-	open_device();
+	open_device(true);
 	check_local_node();
 	enable_phy_packets();
 	list_phy();
@@ -286,7 +291,7 @@ static void list_device(void)
 {
 	unsigned int list_card;
 
-	open_device();
+	open_device(true);
 	list_phy_id = bus_reset.node_id & 0x3f;
 	list_card = get_info.card;
 	if (!device_is_local_node()) {
@@ -294,7 +299,8 @@ static void list_device(void)
 		for (init_enumerated_fw_devs();
 		     has_enumerated_fw_dev();
 		     next_enumerated_fw_dev()) {
-			open_device();
+			if (!open_device(false))
+				continue;
 			if (get_info.card == list_card &&
 			    device_is_local_node())
 				goto found;
@@ -314,7 +320,8 @@ static void list_all_buses(void)
 	for (init_enumerated_fw_devs();
 	     has_enumerated_fw_dev();
 	     next_enumerated_fw_dev()) {
-		open_device();
+		if (!open_device(false))
+			continue;
 		if (device_is_local_node()) {
 			int root_phy_id = bus_reset.root_node_id & 0x3f;
 			enable_phy_packets();
