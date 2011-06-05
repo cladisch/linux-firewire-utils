@@ -1,4 +1,4 @@
-.TH firewire\-phy\-command 8 "22 May 2011" "@PACKAGE_STRING@" 
+.TH firewire\-phy\-command 8 "5 Jun 2011" "@PACKAGE_STRING@" 
 .IX firewire\-phy\-command
 .SH NAME
 firewire\-phy\-command \- low-level FireWire bus and PHY configuration
@@ -9,8 +9,8 @@ firewire\-phy\-command \- low-level FireWire bus and PHY configuration
 .RI [ parameters ]
 .SH DESCRIPTION
 .B firewire\-phy\-command
-is a utility to query and configure the FireWire bus,
-its devices, and their ports.
+is a utility to set low-level configuration parameters
+and to manage port power saving.
 .PP
 In the following commands,
 numbers must be specified in decimal,
@@ -65,17 +65,13 @@ registers 8 to 15 are paged and require both a page number and a port number.
 .TQ
 \fBfirewire\-phy\-command\fP \fBdisable\fP \fInode\fP \fIport\fP
 .TQ
-\fBfirewire\-phy\-command\fP \fBsuspend\fP \fInode\fP \fIport\fP
-.TQ
-\fBfirewire\-phy\-command\fP \fBclear\fP \fInode\fP \fIport\fP
-.TQ
 \fBfirewire\-phy\-command\fP \fBenable\fP \fInode\fP \fIport\fP
+.TQ
+\fBfirewire\-phy\-command\fP \fBsuspend\fP \fInode\fP \fIport\fP
 .TQ
 \fBfirewire\-phy\-command\fP \fBresume\fP \fInode\fP \fIport\fP
 .TQ
-\fBfirewire\-phy\-command\fP \fBstandby\fP \fInode\fP \fIport\fP
-.TQ
-\fBfirewire\-phy\-command\fP \fBrestore\fP \fInode\fP \fIport\fP
+\fBfirewire\-phy\-command\fP \fBclear\fP \fInode\fP \fIport\fP
 Send a remote command packet to port
 .I port
 of node
@@ -89,25 +85,27 @@ This can be used to read the port status,
 or to check whether a port exists.
 .TP
 .B disable
-Disable the port.
+Disable the port and its connected peer port.
+This is the equivalent of breaking the connection
+between the port and the cable.
+.TP
+.B enable
+Re-enable a disabled port.
 .TP
 .B suspend
-Initiate suspend.
+Suspend the connection between the port and its peer port,
+and recursively suspend all other active ports on the peer port's node.
+.TP
+.B resume
+Resume the port and all other ports in the suspended domain.
 .TP
 .B clear
 Clear the port's fault status bit(s).
-.TP
-.B enable
-Enable the port.
-.TP
+If a port entered the suspended state in a faulted condition
+because its peer port did not suspend correctly,
+clearing the fault is required after the
 .B resume
-Resume the port.
-.TP
-.BR standby
-Initiate standby (Beta PHYs only).
-.TP
-.BR restore
-Restore from standby (Beta PHYs only).
+to continue normal operation.
 .RE
 .TP
 \fBfirewire\-phy\-command\fP \fBresume\fP

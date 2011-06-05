@@ -56,7 +56,6 @@ static void help(void)
 	      "  ping <node>\n"
 	      "  read <node> [<page> <port>] <register>\n"
 	      "  nop|disable|suspend|clear|enable|resume <node> <port>\n"
-	      "  standby|restore <node> <port>\n"
 	      "  resume\n"
 	      "  linkon <node>\n"
 	      "  reset\n"
