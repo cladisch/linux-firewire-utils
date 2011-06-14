@@ -33,9 +33,74 @@ typedef __u8 u8;
 typedef __u32 u32;
 typedef __u64 u64;
 
+typedef u32 u24;
+
+static const struct vendor {
+	u24 oui;
+	const char *name;
+	const struct phy {
+		u24 id;
+		const char *name;
+	} *phys;
+} vendors[] = {
+	{
+		.oui  = 0x001018,
+		.name = "Broadcom",
+		.phys = (const struct phy[]) {
+			{}
+		}
+	},
+	{
+		/*
+		 * This OUI actually belongs to System S.p.A.;
+		 * VIA's OUI is 0x004063.
+		 */
+		.oui  = 0x001163,
+		.name = "VIA Technologies",
+		.phys = (const struct phy[]) {
+			{ 0x306001, "VT6308" },
+			{}
+		}
+	},
+	{
+		.oui  = 0x001454,
+		.name = "Symwave",
+		.phys = (const struct phy[]) {
+			{}
+		}
+	},
+	{
+		.oui  = 0x001b8c,
+		.name = "JMicron",
+		.phys = (const struct phy[]) {
+			{}
+		}
+	},
+	{
+		.oui  = 0x00601d,
+		.name = "LSI", /* Lucent/Agere */
+		.phys = (const struct phy[]) {
+			{}
+		}
+	},
+	{
+		.oui  = 0x080028,
+		.name = "Texas Instruments",
+		.phys = (const struct phy[]) {
+			{ 0x424296, "TSB41AB1" },
+			{ 0x424729, "XIO2200A" },
+			{ 0x434615, "TSB43CB43A" },
+			{ 0x831307, "TSB81BA3E" },
+			{}
+		},
+	},
+	{}
+};
+
 static char *device_file_name;
 static int list_phy_id = -1;
 static int fd;
+static bool any_unknown_phys;
 struct fw_cdev_get_info get_info;
 struct fw_cdev_event_bus_reset bus_reset;
 
@@ -206,6 +271,26 @@ static void check_local_node(void)
 	}
 }
 
+static const struct vendor *search_vendor(u24 oui)
+{
+	const struct vendor *vendor;
+
+	for (vendor = vendors; vendor->name; ++vendor)
+		if (vendor->oui== oui)
+			return vendor;
+	return NULL;
+}
+
+static const struct phy *search_phy(const struct vendor *vendor, u24 id)
+{
+	const struct phy *phy;
+
+	for (phy = vendor->phys; phy->name; ++phy)
+		if (phy->id == id)
+			return phy;
+	return NULL;
+}
+
 static void list_phy(void)
 {
 	struct fw_cdev_send_phy_packet send_phy_packet;
@@ -215,6 +300,9 @@ static void list_phy(void)
 	u8 buf[256];
 	struct fw_cdev_event_common *event;
 	u8 reg_values[6];
+	u24 oui, id;
+	const struct vendor *vendor;
+	const struct phy *phy;
 
 	send_phy_packet.closure = 0;
 	send_phy_packet.generation = bus_reset.generation;
@@ -272,10 +360,19 @@ static void list_phy(void)
 		}
 	}
 
-	printf("%u.%d: %02x%02x%02x:%02x%02x%02x\n",
-	       (unsigned int)get_info.card, list_phy_id,
-	       reg_values[0], reg_values[1], reg_values[2],
-	       reg_values[3], reg_values[4], reg_values[5]);
+	oui = (reg_values[0] << 16) | (reg_values[1] << 8) | reg_values[2];
+	id  = (reg_values[3] << 16) | (reg_values[4] << 8) | reg_values[5];
+	vendor = search_vendor(oui);
+	phy = vendor ? search_phy(vendor, id) : NULL;
+
+	printf("%u.%d: %06x:%06x  ", get_info.card, list_phy_id, oui, id);
+	if (vendor)
+		printf("%s %s\n", vendor->name, phy ? phy->name : "(unknown)");
+	else
+		printf("%s\n", "(unknown)");
+
+	if (!phy)
+		any_unknown_phys = true;
 }
 
 static void list_one_phy(void)
@@ -342,5 +439,8 @@ int main(int argc, char *argv[])
 			list_device();
 	else
 		list_all_buses();
+	if (any_unknown_phys)
+		fputs("  Please check this web page for updated PHY IDs:\n"
+		      "  http://code.google.com/p/jujuutils/wiki/PhyIds\n", stderr);
 	return 0;
 }
