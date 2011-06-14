@@ -84,22 +84,10 @@ static void open_device(void)
 static struct fw_cdev_event_response *wait_for_response(void)
 {
 	static u8 buf[sizeof(struct fw_cdev_event_response) + 16384];
-	struct pollfd pfd;
-	int ready, r;
+	int r;
 	struct fw_cdev_event_common *event;
 
-	pfd.fd = fd;
-	pfd.events = POLLIN;
 	for (;;) {
-		ready = poll(&pfd, 1, 123);
-		if (ready < 0) {
-			perror("poll failed");
-			exit(EXIT_FAILURE);
-		}
-		if (!ready) {
-			fputs("timeout (no ack)\n", stderr);
-			exit(EXIT_FAILURE);
-		}
 		r = read(fd, buf, sizeof buf);
 		if (r < sizeof(struct fw_cdev_event_common)) {
 			fputs("short read\n", stderr);
@@ -344,13 +332,14 @@ static void do_fcp(void)
 	pfd.fd = fd;
 	pfd.events = POLLIN;
 	while (!ack_received || !response_received) {
-		ready = poll(&pfd, 1, 123);
+		/* XXX what's a practical timeout for FCP responses? */
+		ready = poll(&pfd, 1, 2345);
 		if (ready < 0) {
 			perror("poll failed");
 			exit(EXIT_FAILURE);
 		}
 		if (!ready) {
-			fprintf(stderr, "timeout (%s)\n", !ack_received ? "no ack" : "no response");
+			fputs("timeout\n", stderr);
 			exit(EXIT_FAILURE);
 		}
 		r = read(fd, buf, sizeof buf);
