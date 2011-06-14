@@ -705,7 +705,7 @@ static void help_registers(void)
 
 static command_func parse_parameters(int argc, char *argv[])
 {
-	static const char short_options[] = "vDh";
+	static const char short_options[] = "DvhV";
 	static const struct option long_options[] = {
 		{ "dump-register-names", 0, NULL, 'D' },
 		{ "verbose", 0, NULL, 'v' },
