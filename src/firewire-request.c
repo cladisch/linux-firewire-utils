@@ -87,7 +87,6 @@ static struct fw_cdev_event_response *wait_for_response(void)
 	struct pollfd pfd;
 	int ready, r;
 	struct fw_cdev_event_common *event;
-	struct fw_cdev_event_bus_reset *event_bus_reset;
 
 	pfd.fd = fd;
 	pfd.events = POLLIN;
@@ -109,10 +108,6 @@ static struct fw_cdev_event_response *wait_for_response(void)
 		event = (void *)buf;
 		if (event->type == FW_CDEV_EVENT_RESPONSE)
 			return (struct fw_cdev_event_response *)buf;
-		if (event->type == FW_CDEV_EVENT_BUS_RESET) {
-			event_bus_reset = (void *)buf;
-			generation = event_bus_reset->generation;
-		}
 	}
 }
 
@@ -171,22 +166,20 @@ static void do_read(void)
 	struct fw_cdev_send_request send_request;
 	struct fw_cdev_event_response *response;
 
-	do {
-		if (read_length == 4 && !(address & 3))
-			send_request.tcode = TCODE_READ_QUADLET_REQUEST;
-		else
-			send_request.tcode = TCODE_READ_BLOCK_REQUEST;
-		send_request.length = read_length;
-		send_request.offset = address;
-		send_request.closure = 0;
-		send_request.data = 0;
-		send_request.generation = generation;
-		if (ioctl(fd, FW_CDEV_IOC_SEND_REQUEST, &send_request) < 0) {
-			perror("SEND_REQUEST ioctl failed");
-			exit(EXIT_FAILURE);
-		}
-		response = wait_for_response();
-	} while (response->rcode == RCODE_GENERATION);
+	if (read_length == 4 && !(address & 3))
+		send_request.tcode = TCODE_READ_QUADLET_REQUEST;
+	else
+		send_request.tcode = TCODE_READ_BLOCK_REQUEST;
+	send_request.length = read_length;
+	send_request.offset = address;
+	send_request.closure = 0;
+	send_request.data = 0;
+	send_request.generation = generation;
+	if (ioctl(fd, FW_CDEV_IOC_SEND_REQUEST, &send_request) < 0) {
+		perror("SEND_REQUEST ioctl failed");
+		exit(EXIT_FAILURE);
+	}
+	response = wait_for_response();
 	if (response->rcode != RCODE_COMPLETE)
 		print_rcode(response->rcode);
 	else
@@ -198,22 +191,20 @@ static void do_write_request(int request)
 	struct fw_cdev_send_request send_request;
 	struct fw_cdev_event_response *response;
 
-	do {
-		if (data.length == 4 && !(address & 3))
-			send_request.tcode = TCODE_WRITE_QUADLET_REQUEST;
-		else
-			send_request.tcode = TCODE_WRITE_BLOCK_REQUEST;
-		send_request.length = data.length;
-		send_request.offset = address;
-		send_request.closure = 0;
-		send_request.data = (u64)data.data;
-		send_request.generation = generation;
-		if (ioctl(fd, request, &send_request) < 0) {
-			perror("SEND_REQUEST ioctl failed");
-			exit(EXIT_FAILURE);
-		}
-		response = wait_for_response();
-	} while (response->rcode == RCODE_GENERATION);
+	if (data.length == 4 && !(address & 3))
+		send_request.tcode = TCODE_WRITE_QUADLET_REQUEST;
+	else
+		send_request.tcode = TCODE_WRITE_BLOCK_REQUEST;
+	send_request.length = data.length;
+	send_request.offset = address;
+	send_request.closure = 0;
+	send_request.data = (u64)data.data;
+	send_request.generation = generation;
+	if (ioctl(fd, request, &send_request) < 0) {
+		perror("SEND_REQUEST ioctl failed");
+		exit(EXIT_FAILURE);
+	}
+	response = wait_for_response();
 	if (response->rcode != RCODE_COMPLETE)
 		print_rcode(response->rcode);
 }
@@ -255,19 +246,17 @@ static void do_lock_request(u32 tcode)
 		memcpy(buf + data.length, data2.data, data2.length);
 	} else
 		buf = data.data;
-	do {
-		send_request.tcode = tcode;;
-		send_request.length = has_data2 ? data.length * 2 : data.length;
-		send_request.offset = address;
-		send_request.closure = 0;
-		send_request.data = (u64)buf;
-		send_request.generation = generation;
-		if (ioctl(fd, FW_CDEV_IOC_SEND_REQUEST, &send_request) < 0) {
-			perror("SEND_REQUEST ioctl failed");
-			exit(EXIT_FAILURE);
-		}
-		response = wait_for_response();
-	} while (response->rcode == RCODE_GENERATION);
+	send_request.tcode = tcode;;
+	send_request.length = has_data2 ? data.length * 2 : data.length;
+	send_request.offset = address;
+	send_request.closure = 0;
+	send_request.data = (u64)buf;
+	send_request.generation = generation;
+	if (ioctl(fd, FW_CDEV_IOC_SEND_REQUEST, &send_request) < 0) {
+		perror("SEND_REQUEST ioctl failed");
+		exit(EXIT_FAILURE);
+	}
+	response = wait_for_response();
 	if (response->rcode != RCODE_COMPLETE)
 		print_rcode(response->rcode);
 	else
