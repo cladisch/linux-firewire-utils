@@ -44,6 +44,29 @@ static const struct vendor {
 	} *phys;
 } vendors[] = {
 	{
+		.oui  = 0x00000e,
+		.name = "Fujitsu",
+		.phys = (const struct phy[]) {
+			{ 0x086613, "MB86613" },
+			{}
+		}
+	},
+	{
+		.oui  = 0x00004c,
+		.name = "NEC",
+		.phys = (const struct phy[]) {
+			{}
+		}
+	},
+	{
+		.oui  = 0x00053d,
+		.name = "Agere Systems",
+		.phys = (const struct phy[]) {
+			{ 0x06430a, "FW643E" },
+			{}
+		}
+	},
+	{
 		.oui  = 0x001018,
 		.name = "Broadcom",
 		.phys = (const struct phy[]) {
@@ -58,7 +81,7 @@ static const struct vendor {
 		.oui  = 0x001163,
 		.name = "VIA Technologies",
 		.phys = (const struct phy[]) {
-			{ 0x306001, "VT6308" },
+			{ 0x306001, "VT630x" },
 			{}
 		}
 	},
@@ -73,13 +96,16 @@ static const struct vendor {
 		.oui  = 0x001b8c,
 		.name = "JMicron",
 		.phys = (const struct phy[]) {
+			{ 0x038100, "JMB38x" },
 			{}
 		}
 	},
 	{
 		.oui  = 0x00601d,
-		.name = "LSI", /* Lucent/Agere */
+		.name = "Lucent Technologies",
 		.phys = (const struct phy[]) {
+			{ 0x032361, "FW323" },
+			{ 0x080201, "FW802" },
 			{}
 		}
 	},
@@ -87,10 +113,17 @@ static const struct vendor {
 		.oui  = 0x080028,
 		.name = "Texas Instruments",
 		.phys = (const struct phy[]) {
-			{ 0x424296, "TSB41AB1" },
+			{ 0x42308a, "TSB41LV02A" },
+			{ 0x424296, "TSB41AB1/2" },
+			{ 0x424499, "TSB43AB22(A)" },
 			{ 0x424729, "XIO2200A" },
+			{ 0x434195, "TSB41AB3" },
 			{ 0x434615, "TSB43CB43A" },
-			{ 0x831307, "TSB81BA3E" },
+			{ 0x46318a, "TSB41LV06A" },
+			{ 0x831304, "TSB81BA3(A)" },
+			{ 0x831306, "TSB81BA3D" },
+			{ 0x831307, "TSB81BA3E/XIO2213A/B" },
+			{ 0x833005, "TSB41BA3D" },
 			{}
 		},
 	},
