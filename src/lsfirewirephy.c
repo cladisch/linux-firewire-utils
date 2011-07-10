@@ -398,7 +398,7 @@ static void list_phy(void)
 	vendor = search_vendor(oui);
 	phy = vendor ? search_phy(vendor, id) : NULL;
 
-	printf("%u.%d: %06x:%06x  ", get_info.card, list_phy_id, oui, id);
+	printf("bus %u, node %d: %06x:%06x  ", get_info.card, list_phy_id, oui, id);
 	if (vendor)
 		printf("%s %s\n", vendor->name, phy ? phy->name : "(unknown)");
 	else
