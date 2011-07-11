@@ -110,6 +110,15 @@ static const struct vendor {
 		}
 	},
 	{
+		.oui  = 0x00c02d,
+		.name = "Fujifilm",
+		.phys = (const struct phy[]) {
+			{ 0x303562, "MD8405B" },
+			{ 0x303565, "MD8405E" },
+			{}
+		}
+	},
+	{
 		.oui  = 0x080028,
 		.name = "Texas Instruments",
 		.phys = (const struct phy[]) {
@@ -122,7 +131,7 @@ static const struct vendor {
 			{ 0x46318a, "TSB41LV06A" },
 			{ 0x831304, "TSB81BA3(A)" },
 			{ 0x831306, "TSB81BA3D" },
-			{ 0x831307, "TSB81BA3E/XIO2213A/B" },
+			{ 0x831307, "TSB81BA3E/XIO2213" },
 			{ 0x833005, "TSB41BA3D" },
 			{}
 		},
