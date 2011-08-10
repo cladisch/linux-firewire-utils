@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 #include <ctype.h>
 #include <dirent.h>
@@ -28,6 +29,8 @@
 #define FCP_RESPONSE_ADDR	0xfffff0000d00uLL
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof *(a))
+
+#define ptr_to_u64(p) ((uintptr_t)(p))
 
 typedef __u8 u8;
 typedef __u32 u32;
@@ -70,7 +73,7 @@ static void open_device(void)
 #endif
 	get_info.rom_length = 0;
 	get_info.rom = 0;
-	get_info.bus_reset = (u64)&bus_reset;
+	get_info.bus_reset = ptr_to_u64(&bus_reset);
 	get_info.bus_reset_closure = 0;
 	if (ioctl(fd, FW_CDEV_IOC_GET_INFO, &get_info) < 0) {
 		perror("GET_INFO ioctl failed");

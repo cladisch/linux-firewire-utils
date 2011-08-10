@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 #include <ctype.h>
 #include <dirent.h>
@@ -23,6 +24,8 @@
 #include <sys/stat.h>
 #include <linux/firewire-cdev.h>
 #include <linux/firewire-constants.h>
+
+#define ptr_to_u64(p) ((uintptr_t)(p))
 
 #define PHY_REMOTE_ACCESS_PAGED(phy_id, page, port, reg) \
 	(((phy_id) << 24) | (5 << 18) | ((page) << 15) | ((port) << 11) | ((reg) << 8))
@@ -275,7 +278,7 @@ static bool open_device(bool force)
 	get_info.version = 4;
 	get_info.rom_length = 0;
 	get_info.rom = 0;
-	get_info.bus_reset = (u64)&bus_reset;
+	get_info.bus_reset = ptr_to_u64(&bus_reset);
 	get_info.bus_reset_closure = 0;
 	if (ioctl(fd, FW_CDEV_IOC_GET_INFO, &get_info) < 0) {
 		perror("GET_INFO ioctl failed");
