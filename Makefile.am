@@ -1,2 +1,2 @@
 SUBDIRS = src
-extra_DIST = README
+EXTRA_DIST = README

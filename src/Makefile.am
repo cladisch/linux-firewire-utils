@@ -6,3 +6,4 @@ if HAVE_CDEV_4
 bin_PROGRAMS += lsfirewirephy firewire-phy-command
 man_MANS += lsfirewirephy.8 firewire-phy-command.8
 endif
+EXTRA_DIST = crpp
