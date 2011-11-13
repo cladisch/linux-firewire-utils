@@ -189,7 +189,7 @@ static void do_write_request(int request)
 	send_request.length = data.length;
 	send_request.offset = address;
 	send_request.closure = 0;
-	send_request.data = (u64)data.data;
+	send_request.data = ptr_to_u64(data.data);
 	send_request.generation = generation;
 	if (ioctl(fd, request, &send_request) < 0) {
 		perror("SEND_REQUEST ioctl failed");
@@ -241,7 +241,7 @@ static void do_lock_request(u32 tcode)
 	send_request.length = has_data2 ? data.length * 2 : data.length;
 	send_request.offset = address;
 	send_request.closure = 0;
-	send_request.data = (u64)buf;
+	send_request.data = ptr_to_u64(buf);
 	send_request.generation = generation;
 	if (ioctl(fd, FW_CDEV_IOC_SEND_REQUEST, &send_request) < 0) {
 		perror("SEND_REQUEST ioctl failed");
@@ -323,7 +323,7 @@ static void do_fcp(void)
 	send_request.length = data.length;
 	send_request.offset = FCP_COMMAND_ADDR;
 	send_request.closure = 0;
-	send_request.data = (u64)data.data;
+	send_request.data = ptr_to_u64(data.data);
 	send_request.generation = generation;
 	if (ioctl(fd, FW_CDEV_IOC_SEND_REQUEST, &send_request) < 0) {
 		perror("SEND_REQUEST ioctl failed");
