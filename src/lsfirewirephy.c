@@ -44,6 +44,7 @@ static const struct vendor {
 	const struct phy {
 		u24 id;
 		const char *name;
+		u24 mask;
 	} *phys;
 } vendors[] = {
 	{
@@ -65,7 +66,8 @@ static const struct vendor {
 		.oui  = 0x00053d,
 		.name = "Agere Systems",
 		.phys = (const struct phy[]) {
-			{ 0x06430a, "FW643E" },
+			{ 0x053300, "FW533E", 0xffff00 },
+			{ 0x064300, "FW643(E)", 0xffff00 },
 			{}
 		}
 	},
@@ -107,8 +109,9 @@ static const struct vendor {
 		.oui  = 0x00601d,
 		.name = "Lucent Technologies",
 		.phys = (const struct phy[]) {
-			{ 0x032361, "FW323" },
-			{ 0x080201, "FW802" },
+			{ 0x032200, "FW322", 0xffff00 },
+			{ 0x032300, "FW323", 0xffff00 },
+			{ 0x080200, "FW802", 0xffff00 },
 			{}
 		}
 	},
@@ -331,7 +334,7 @@ static const struct phy *search_phy(const struct vendor *vendor, u24 id)
 	const struct phy *phy;
 
 	for (phy = vendor->phys; phy->name; ++phy)
-		if (phy->id == id)
+		if ((phy->id & (phy->mask ?: 0xffffff)) == id)
 			return phy;
 	return NULL;
 }
