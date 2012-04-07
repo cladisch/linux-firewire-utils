@@ -37,7 +37,6 @@ AM_CONDITIONAL([HAVE_CDEV_4],
 AC_OUTPUT([
 README
 Makefile
-src/Makefile
 src/lsfirewire
 src/lsfirewire.8
 src/lsfirewirephy.8
