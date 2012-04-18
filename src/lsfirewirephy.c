@@ -332,10 +332,13 @@ static const struct vendor *search_vendor(u24 oui)
 static const struct phy *search_phy(const struct vendor *vendor, u24 id)
 {
 	const struct phy *phy;
+	u24 mask;
 
-	for (phy = vendor->phys; phy->name; ++phy)
-		if ((phy->id & (phy->mask ?: 0xffffff)) == id)
+	for (phy = vendor->phys; phy->name; ++phy) {
+		mask = phy->mask ?: 0xffffff;
+		if ((phy->id & mask) == (id & mask))
 			return phy;
+	}
 	return NULL;
 }
 
