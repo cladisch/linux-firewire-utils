@@ -44,6 +44,7 @@ History:
 2010-02-18: small fixes; added protocol entries, OUI lookup, CRC checks
 2010-04-25: added firecontrol input
 2010-07-19: added vendor-defined specifier/version IDs
+2012-04-23: added IIDC2 v1.0.0 protocol entries
 """
 
 ouidb_search_paths = (
@@ -151,6 +152,14 @@ iidc131_protocol_entries = {
     0x82: lambda v: "model name leaf",
 }
 
+iidc2_100_protocol_entries = {
+    0x38: lambda v: "unit sub sw version v%d.%d.%d" % (
+        v >> 16, v >> 8 & 0xff, v & 0xff),
+    0x40: lambda v: "IIDC2Entry at %012x" % (csr_address(v)),
+    0x81: lambda v: "vendor name leaf",
+    0x82: lambda v: "model name leaf",
+}
+
 isight_audio_protocol_entries = {
     0x40: lambda v: "register file at %012x" % (csr_address(v)),
 }
@@ -215,6 +224,7 @@ protocols = {
         0x000100: ("IIDC 1.04", iidc104_protocol_entries),
         0x000101: ("IIDC 1.20", iidc104_protocol_entries),
         0x000102: ("IIDC 1.30", iidc131_protocol_entries),
+        0x000110: ("IIDC2", iidc2_100_protocol_entries),
         0x0A6BE2: ("DPP 1.0", dpp111_protocol_entries),
         0x4B661F: ("IICP 1.0", iicp_protocol_entries),
     }),
