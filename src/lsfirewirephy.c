@@ -86,7 +86,7 @@ static const struct vendor {
 		.oui  = 0x001163,
 		.name = "VIA Technologies",
 		.phys = (const struct phy[]) {
-			{ 0x306001, "VT630x" },
+			{ 0x306001, "VT63xx" },
 			{}
 		}
 	},
