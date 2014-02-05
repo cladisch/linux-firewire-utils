@@ -59,6 +59,8 @@ static const struct vendor {
 		.oui  = 0x00004c,
 		.name = "NEC",
 		.phys = (const struct phy[]) {
+			{ 0x000201, "PD7286x" },
+			{ 0x050160, "PD7287x" },
 			{}
 		}
 	},
@@ -68,6 +70,15 @@ static const struct vendor {
 		.phys = (const struct phy[]) {
 			{ 0x053300, "FW533E", 0xffff00 },
 			{ 0x064300, "FW643(E)", 0xffff00 },
+			{ 0x084300, "FW843", 0xffff00 },
+			{}
+		}
+	},
+	{
+		.oui  = 0x000cc2,
+		.name = "ControlNet India (O2Micro)",
+		.phys = (const struct phy[]) {
+			{ 0x401104, "OZxxx" },
 			{}
 		}
 	},
@@ -140,7 +151,17 @@ static const struct vendor {
 			{ 0x831307, "TSB81BA3E/XIO2213" },
 			{ 0x833005, "TSB41BA3D" },
 			{}
-		},
+		}
+	},
+	{
+		.oui  = 0x10005a,
+		.name = "IBM",
+		.phys = (const struct phy[]) {
+			{ 0x218600, "IBM21S860", 0xfffff0 },
+			{ 0x218610, "IBM21S861", 0xfffff0 },
+			{ 0x218620, "IBM21S862", 0xfffff0 },
+			{}
+		}
 	},
 	{}
 };
