@@ -66,7 +66,7 @@ static const struct vendor {
 	},
 	{
 		.oui  = 0x00053d,
-		.name = "Agere Systems",
+		.name = "Agere (LSI)",
 		.phys = (const struct phy[]) {
 			{ 0x053300, "FW533E", 0xffff00 },
 			{ 0x064300, "FW643(E)", 0xffff00 },
@@ -95,7 +95,7 @@ static const struct vendor {
 		 * VIA's OUI is 0x004063.
 		 */
 		.oui  = 0x001163,
-		.name = "VIA Technologies",
+		.name = "VIA",
 		.phys = (const struct phy[]) {
 			{ 0x306001, "VT63xx" },
 			{}
@@ -118,7 +118,7 @@ static const struct vendor {
 	},
 	{
 		.oui  = 0x00601d,
-		.name = "Lucent Technologies",
+		.name = "Lucent (LSI)",
 		.phys = (const struct phy[]) {
 			{ 0x032200, "FW322", 0xffff00 },
 			{ 0x032300, "FW323", 0xffff00 },
