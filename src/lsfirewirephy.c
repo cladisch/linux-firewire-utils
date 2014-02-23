@@ -127,6 +127,18 @@ static const struct vendor {
 		}
 	},
 	{
+		.oui  = 0x006037,
+		.name = "Philips (NXP)",
+		.phys = (const struct phy[]) {
+			{ 0x412801, "PDI1394P25" },
+			{ 0x422001, "PDI1394P23" },
+			{ 0x423900, "PDI1394P24", 0xffff0f },
+			{ 0x431000, "PDI1394P21" },
+			{ 0x431100, "PDI1394P22" },
+			{}
+		}
+	},
+	{
 		.oui  = 0x00c02d,
 		.name = "Fujifilm",
 		.phys = (const struct phy[]) {
