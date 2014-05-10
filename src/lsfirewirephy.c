@@ -232,7 +232,7 @@ static void parse_parameters(int argc, char *argv[])
 
 		if (optind < argc) {
 			list_phy_id = strtol(argv[optind], &endptr, 0);
-			if (argv[optind][0] != '\0' && *endptr != '\0')
+			if (argv[optind][0] == '\0' || *endptr != '\0')
 				goto syntax_error;
 			if (list_phy_id < 0 || list_phy_id >= 63) {
 				fputs("phy-id must be between 0 and 62\n", stderr);
