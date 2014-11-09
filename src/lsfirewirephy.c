@@ -105,6 +105,7 @@ static const struct vendor {
 		.oui  = 0x001454,
 		.name = "Symwave",
 		.phys = (const struct phy[]) {
+			{ 0x003181, "SW3080" },
 			{}
 		}
 	},
