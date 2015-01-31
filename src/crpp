@@ -45,6 +45,7 @@ History:
 2010-04-25: added firecontrol input
 2010-07-19: added vendor-defined specifier/version IDs
 2012-04-23: added IIDC2 v1.0.0 protocol entries
+2012-06-12: updated dmesg reader to log format of kernel 3.4
 """
 
 ouidb_search_paths = (
@@ -517,8 +518,10 @@ def read_firecontrol_output(s, rom):
 def read_log_data(s, rom):
     i = -1
     for line in s.splitlines():
-        # fixme: should take node IDs and transaction labels into account
-        if line.find("firewire_ohci: AT spd ") >= 0 and \
+        # fixme: - should take card, node IDs and transaction labels into account
+        #        - response event may be logged before request event
+        if line.find("firewire_ohci") >= 0 and \
+           line.find(": AT spd ") >= 0 and \
            line.find(", ack_pending , QR req, fffff0000") >= 0:
             j = int(line[-12:], 16)
             if j < 0xfffff0000400 or j >= 0xfffff0000800:
@@ -528,7 +531,8 @@ def read_log_data(s, rom):
             if i == 0:
                 rom[:] = [0] * 256
             continue
-        if line.find("firewire_ohci: AR spd ") >= 0 and \
+        if line.find("firewire_ohci") >= 0 and \
+           line.find(": AR spd ") >= 0 and \
            line.find(", ack_complete, QR resp = ") >= 0 and \
            i > -1:
             rom[i] = int(line[-8:], 16)
