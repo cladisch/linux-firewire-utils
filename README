@@ -1,10 +1,10 @@
-@PACKAGE_STRING@
-==============
+Linux FireWire utilities
+========================
 
 What's this?
 ------------
 
-The @PACKAGE_NAME@ package contains Linux FireWire utilities for
+The linux-firewire-utils package contains Linux FireWire utilities for
 listing devices (lsfirewire, lsfirewirephy) and for querying and
 configuring devices (firewire-request, firewire-phy-command).
 
@@ -13,7 +13,7 @@ Installation
 ------------
 
 This package uses GNU Autoconf; you can use the standard installation
-sequence::
+sequence:
 
   configure
   make
@@ -36,8 +36,6 @@ GNU GPL v2; see the file COPYING.
 Links
 -----
 
-Report bugs to <@PACKAGE_BUGREPORT@>.
+Report bugs to <linux1394-devel@lists.sourceforge.net>.
 
-@PACKAGE_NAME@ home page: <@PACKAGE_URL@>.
-
-.. vim: ft=rst
+linux-firewire-utils home page: <https://github.com/cladisch/linux-firewire-utils>.

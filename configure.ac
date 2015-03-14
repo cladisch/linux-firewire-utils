@@ -1,5 +1,5 @@
-AC_INIT([Juju utils], [0.3], [linux1394-devel@lists.sourceforge.net],
-	[jujuutils], [http://code.google.com/p/jujuutils/])
+AC_INIT([Linux FireWire utilities], [0.3], [linux1394-devel@lists.sourceforge.net],
+	[linux-firewire-utils], [https://github.com/cladisch/linux-firewire-utils])
 AC_CONFIG_SRCDIR([src/lsfirewire.in])
 AM_INIT_AUTOMAKE([foreign no-define silent-rules])
 
@@ -35,7 +35,6 @@ AM_CONDITIONAL([HAVE_CDEV_4],
 	       [test "$juju4" = yes])
 
 AC_OUTPUT([
-README
 Makefile
 src/lsfirewire
 src/lsfirewire.8

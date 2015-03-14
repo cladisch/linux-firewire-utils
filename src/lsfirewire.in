@@ -107,7 +107,7 @@ show_device_config_rom() {
 			MY_DIR="$ORIGINAL_PWD/$MY_DIR"
 		fi
 
-		CRPP="$MY_DIR/../libexec/jujuutils/crpp"
+		CRPP="$MY_DIR/../libexec/linux-firewire-utils/crpp"
 		if [ ! -x "$CRPP" ]; then
 			CRPP="$MY_DIR/crpp"
 			if [ ! -x "$CRPP" ]; then
