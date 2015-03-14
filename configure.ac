@@ -1,4 +1,4 @@
-AC_INIT([Linux FireWire utilities], [0.3], [linux1394-devel@lists.sourceforge.net],
+AC_INIT([Linux FireWire utilities], [0.4], [linux1394-devel@lists.sourceforge.net],
 	[linux-firewire-utils], [https://github.com/cladisch/linux-firewire-utils])
 AC_CONFIG_SRCDIR([src/lsfirewire.in])
 AM_INIT_AUTOMAKE([foreign no-define silent-rules])
