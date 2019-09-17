@@ -480,7 +480,7 @@ def write_config_rom(f, ouidb, rom):
         f.write("\n")
 
 def read_le32_data(s, l, rom):
-    for i in range(0, l / 4):
+    for i in range(0, l // 4):
         j = i * 4
         rom[i] = (ord(s[j    ])      ) + \
                  (ord(s[j + 1]) <<  8) + \
@@ -488,7 +488,7 @@ def read_le32_data(s, l, rom):
                  (ord(s[j + 3]) << 24)
 
 def read_be32_data(s, l, rom):
-    for i in range(0, l / 4):
+    for i in range(0, l // 4):
         j = i * 4
         rom[i] = (ord(s[j    ]) << 24) + \
                  (ord(s[j + 1]) << 16) + \
@@ -504,7 +504,7 @@ def read_firecontrol_output(s, rom):
             if j < 0xfffff0000400 or j >= 0xfffff0000800:
                 i = -1
                 continue
-            i = (j - 0xfffff0000400) / 4
+            i = (j - 0xfffff0000400) // 4
             if i == 0:
                 rom[:] = [0] * 256
             continue
@@ -529,7 +529,7 @@ def read_log_data(s, rom):
             if j < 0xfffff0000400 or j >= 0xfffff0000800:
                 i = -1
                 continue
-            i = (j - 0xfffff0000400) / 4
+            i = (j - 0xfffff0000400) // 4
             if i == 0:
                 rom[:] = [0] * 256
             continue
