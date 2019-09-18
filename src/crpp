@@ -49,6 +49,7 @@ History:
 2015-01-31: updated comment on oui.db: let sed squash leading whitespace
 """
 from functools import reduce
+from sys import stdin, stdout, exit
 
 ouidb_search_paths = (
     "/usr/share/misc/oui.db",
@@ -564,13 +565,11 @@ def build_oui24_db(paths):
     return dict([(proto[0], proto[1][0]) for proto in iter(protocols.items())])
 
 def main():
-    import sys
-    rom = build_config_rom(sys.stdin)
+    rom = build_config_rom(stdin)
     if not rom[0] >> 24:
         return "Nothing read."
     ouidb = build_oui24_db(ouidb_search_paths)
-    write_config_rom(sys.stdout, ouidb, rom)
+    write_config_rom(stdout, ouidb, rom)
 
 if __name__ == "__main__":
-    import sys
-    sys.exit(main())
+    exit(main())
