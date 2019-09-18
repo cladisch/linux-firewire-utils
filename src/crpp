@@ -48,6 +48,9 @@ History:
 2012-06-12: updated dmesg reader to log format of kernel 3.4
 2015-01-31: updated comment on oui.db: let sed squash leading whitespace
 """
+from functools import reduce
+from sys import stdin, stdout, exit, version_info
+from struct import pack, unpack
 
 ouidb_search_paths = (
     "/usr/share/misc/oui.db",
@@ -56,7 +59,7 @@ ouidb_search_paths = (
 
 def crc16(rom, i, l):
     def nextcrc(c, q):
-        for j in xrange(28, -1, -4):
+        for j in range(28, -1, -4):
             s = (c >> 12 ^ q >> j) & 0xf
             c = c << 4 ^ s << 12 ^ s << 5 ^ s
         return c & 0xffff
@@ -67,7 +70,7 @@ def u8_to_char(n):
     if n == 0:
         return ""
     # printable character from minimal ASCII
-    if n in range(0x20, 0x23) + range(0x25, 0x5b) + [0x5f] + range(0x61, 0x7b):
+    if n in list(range(0x20, 0x23)) + list(range(0x25, 0x5b)) + [0x5f] + list(range(0x61, 0x7b)):
         return chr(n)
     # other character
     return "~"
@@ -403,7 +406,7 @@ def write_block(f, ouidb, rom, blocks, i, context):
             "               -----------------------------------------------------------------\n"
             "%x  %08x  %s_length %d, crc %d%s\n" %
             (headline, o, r, ieee1212_types[t], l, c,
-             " (should be %d)" % (crc) if crc <> c else ""))
+             " (should be %d)" % (crc) if crc != c else ""))
     end = min(i + l, 255)
     i += 1
     o += 4
@@ -423,7 +426,7 @@ def write_bus_info_block(f, ouidb, rom, blocks):
     crc = crc16(rom, 1, crc_len)
     f.write("400  %08x  bus_info_length %d, crc_length %d, crc %d%s\n" %
             (r, bib_len, crc_len, c,
-             " (should be %d)" % (crc) if crc <> c else ""))
+             " (should be %d)" % (crc) if crc != c else ""))
     r = rom[1]
     f.write("404  %08x  bus_name %s\n" % (r, u32_to_string(r)))
     if r == 0x31333934:
@@ -478,22 +481,6 @@ def write_config_rom(f, ouidb, rom):
     if need_linefeed:
         f.write("\n")
 
-def read_le32_data(s, l, rom):
-    for i in xrange(0, l / 4):
-        j = i * 4
-        rom[i] = (ord(s[j    ])      ) + \
-                 (ord(s[j + 1]) <<  8) + \
-                 (ord(s[j + 2]) << 16) + \
-                 (ord(s[j + 3]) << 24)
-
-def read_be32_data(s, l, rom):
-    for i in xrange(0, l / 4):
-        j = i * 4
-        rom[i] = (ord(s[j    ]) << 24) + \
-                 (ord(s[j + 1]) << 16) + \
-                 (ord(s[j + 2]) <<  8) + \
-                 (ord(s[j + 3])      )
-
 def read_firecontrol_output(s, rom):
     i = -1
     for line in s.splitlines():
@@ -503,7 +490,7 @@ def read_firecontrol_output(s, rom):
             if j < 0xfffff0000400 or j >= 0xfffff0000800:
                 i = -1
                 continue
-            i = (j - 0xfffff0000400) / 4
+            i = (j - 0xfffff0000400) // 4
             if i == 0:
                 rom[:] = [0] * 256
             continue
@@ -528,7 +515,7 @@ def read_log_data(s, rom):
             if j < 0xfffff0000400 or j >= 0xfffff0000800:
                 i = -1
                 continue
-            i = (j - 0xfffff0000400) / 4
+            i = (j - 0xfffff0000400) // 4
             if i == 0:
                 rom[:] = [0] * 256
             continue
@@ -538,38 +525,54 @@ def read_log_data(s, rom):
            i > -1:
             rom[i] = int(line[-8:], 16)
 
-def build_config_rom(f):
+def build_config_rom(binary):
     rom = [0] * 256
-    s = f.read()
-    l = len(s)
+    l = len(binary)
     may_be_binary = l > 20 and l <= 1024 and l & 3 == 0
-    if   may_be_binary and s[4:8] == "4931":
-        read_le32_data(s, l, rom)
-    elif may_be_binary and s[4:8] == "1394":
-        read_be32_data(s, l, rom)
-    elif l > 20 and s[0:12] == "firecontrol ":
-        read_firecontrol_output(s, rom)
+    bus_name = binary[4:8].decode()
+    if may_be_binary and bus_name in ('4931', '1394'):
+        if bus_name == '4931':
+            endian = '<'
+        else:
+            endian = '>'
+        template = '{0}{1}I'.format(endian, len(binary) // 4)
+        for i, quad in enumerate(unpack(template, binary)):
+            rom[i] = quad
     else:
-        read_log_data(s, rom)
+        if version_info[0] > 2:
+            s = binary.decode()
+        else:
+            s = str(binary)
+
+        if l > 20 and s[0:12] == "firecontrol ":
+            read_firecontrol_output(s, rom)
+        else:
+            read_log_data(s, rom)
     return rom
 
 def build_oui24_db(paths):
     for p in paths:
         try:
-            return dict(map(lambda l: (int(l[:6], 16), l[7:-1]), file(p, "r")))
+            return dict([(int(l[:6], 16), l[7:-1]) for l in open(p, "r")])
         except (IOError, ValueError):
             continue
     # fallback: specifiers from the protocols dictionary
-    return dict(map(lambda proto: (proto[0], proto[1][0]), protocols.iteritems()))
+    return dict([(proto[0], proto[1][0]) for proto in iter(protocols.items())])
 
 def main():
-    import sys
-    rom = build_config_rom(sys.stdin)
+    if version_info[0] > 2:
+        stdio_fd = stdin.fileno()
+        with open(stdio_fd, 'rb', closefd=False) as f:
+            binary = f.read()
+    else:
+        # For python 2. The str object keeps byte-by-byte letters in an
+        # uncertain encoding and is safely to convert to bytes object.
+        binary = bytes(stdin.read())
+    rom = build_config_rom(binary)
     if not rom[0] >> 24:
         return "Nothing read."
     ouidb = build_oui24_db(ouidb_search_paths)
-    write_config_rom(sys.stdout, ouidb, rom)
+    write_config_rom(stdout, ouidb, rom)
 
 if __name__ == "__main__":
-    import sys
-    sys.exit(main())
+    exit(main())
