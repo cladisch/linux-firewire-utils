@@ -49,7 +49,8 @@ History:
 2015-01-31: updated comment on oui.db: let sed squash leading whitespace
 """
 from functools import reduce
-from sys import stdin, stdout, exit
+from sys import stdin, stdout, exit, version_info
+from struct import pack, unpack
 
 ouidb_search_paths = (
     "/usr/share/misc/oui.db",
@@ -480,22 +481,6 @@ def write_config_rom(f, ouidb, rom):
     if need_linefeed:
         f.write("\n")
 
-def read_le32_data(s, l, rom):
-    for i in range(0, l // 4):
-        j = i * 4
-        rom[i] = (ord(s[j    ])      ) + \
-                 (ord(s[j + 1]) <<  8) + \
-                 (ord(s[j + 2]) << 16) + \
-                 (ord(s[j + 3]) << 24)
-
-def read_be32_data(s, l, rom):
-    for i in range(0, l // 4):
-        j = i * 4
-        rom[i] = (ord(s[j    ]) << 24) + \
-                 (ord(s[j + 1]) << 16) + \
-                 (ord(s[j + 2]) <<  8) + \
-                 (ord(s[j + 3])      )
-
 def read_firecontrol_output(s, rom):
     i = -1
     for line in s.splitlines():
@@ -540,19 +525,29 @@ def read_log_data(s, rom):
            i > -1:
             rom[i] = int(line[-8:], 16)
 
-def build_config_rom(f):
+def build_config_rom(binary):
     rom = [0] * 256
-    s = f.read()
-    l = len(s)
+    l = len(binary)
     may_be_binary = l > 20 and l <= 1024 and l & 3 == 0
-    if   may_be_binary and s[4:8] == "4931":
-        read_le32_data(s, l, rom)
-    elif may_be_binary and s[4:8] == "1394":
-        read_be32_data(s, l, rom)
-    elif l > 20 and s[0:12] == "firecontrol ":
-        read_firecontrol_output(s, rom)
+    bus_name = binary[4:8].decode()
+    if may_be_binary and bus_name in ('4931', '1394'):
+        if bus_name == '4931':
+            endian = '<'
+        else:
+            endian = '>'
+        template = '{0}{1}I'.format(endian, len(binary) // 4)
+        for i, quad in enumerate(unpack(template, binary)):
+            rom[i] = quad
     else:
-        read_log_data(s, rom)
+        if version_info[0] > 2:
+            s = binary.decode()
+        else:
+            s = str(binary)
+
+        if l > 20 and s[0:12] == "firecontrol ":
+            read_firecontrol_output(s, rom)
+        else:
+            read_log_data(s, rom)
     return rom
 
 def build_oui24_db(paths):
@@ -565,7 +560,15 @@ def build_oui24_db(paths):
     return dict([(proto[0], proto[1][0]) for proto in iter(protocols.items())])
 
 def main():
-    rom = build_config_rom(stdin)
+    if version_info[0] > 2:
+        stdio_fd = stdin.fileno()
+        with open(stdio_fd, 'rb', closefd=False) as f:
+            binary = f.read()
+    else:
+        # For python 2. The str object keeps byte-by-byte letters in an
+        # uncertain encoding and is safely to convert to bytes object.
+        binary = bytes(stdin.read())
+    rom = build_config_rom(binary)
     if not rom[0] >> 24:
         return "Nothing read."
     ouidb = build_oui24_db(ouidb_search_paths)
