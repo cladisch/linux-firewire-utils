@@ -558,7 +558,7 @@ def build_config_rom(f):
 def build_oui24_db(paths):
     for p in paths:
         try:
-            return dict([(int(l[:6], 16), l[7:-1]) for l in file(p, "r")])
+            return dict([(int(l[:6], 16), l[7:-1]) for l in open(p, "r")])
         except (IOError, ValueError):
             continue
     # fallback: specifiers from the protocols dictionary
